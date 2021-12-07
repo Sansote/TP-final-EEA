@@ -1,0 +1,110 @@
+---
+title: "Ejemplo de aplicacion de SHAP a XGBOOST"
+author: "Santiago Andres Sotelo"
+date: "6 de Diciembre de 2021"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Limpio la memoria y borro objetos
+
+
+```{r}
+rm( list=ls() )  
+gc() 
+```
+# Carga de librerias, importacion de dataset y definicion objetivo
+
+Volvemos a cargar el Dataset de **Boston** y definimos cuales son los features que vamos a utilizar para predecir. EN este caso vamos a elegir nuevamente las mismas variables que en **Ejemplo 1**. A continuacion vamos a hacer un recorte del dataset total y nos vamos a quedar con 6 observaciones para trabajar y que no crezca demasiado la complejidad computacional.
+
+```{r,warning=FALSE}
+
+library(xgboost)
+library(shapr)
+
+data("Boston", package = "MASS")
+
+x_var <- c("nox", "rm", "dis", "age")
+y_var <- "medv"
+
+x_train <- as.matrix(Boston[-1:-6, x_var])
+y_train <- Boston[-1:-6, y_var]
+x_test <- as.matrix(Boston[1:6, x_var])
+
+```
+
+#Ajuste del Modelo
+
+Aca se ajusto xgboost al set de training
+
+```{r pressure, echo=FALSE}
+
+model <- xgboost(
+  data = x_train,
+  label = y_train,
+  nround = 20,
+  verbose = FALSE
+)
+```
+
+Se setea la data para explicar
+
+```{r,message = FALSE}
+
+explainer <- shapr(x_train, model)
+
+```
+
+
+Se calcula el fi_0 es decir la prediccion sin features
+
+```{r}
+
+p <- mean(y_train)
+
+```
+
+
+#Calculo de los Shapley Values
+
+
+Computing the actual Shapley values with kernelSHAP accounting for feature dependence using
+the empirical (conditional) distribution approach with bandwidth parameter sigma = 0.1 (default)
+
+
+```{r}
+
+explanation <- explain(
+  x_test,
+  approach = "empirical",
+  explainer = explainer,
+  prediction_zero = p
+)
+```
+
+
+
+# Visualizacion de la importancia de los Feautres
+
+
+
+
+```{r}
+
+plot(explanation, plot_phi0 = FALSE, index_x_test = c(1))
+
+
+```
+
+

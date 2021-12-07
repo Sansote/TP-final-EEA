@@ -1,0 +1,66 @@
+---
+title: "Ejemplo de aplicacion de SHAP Lineal"
+author: "Santiago Andres Sotelo"
+date: "6 de Diciembre de 2021"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Limpio la memoria y borro objetos
+
+```{r,message = FALSE}
+
+rm( list=ls() ) 
+gc() 
+```
+
+# Carga de librerias
+
+```{r,warning=FALSE}
+
+
+library(kableExtra)
+library(tidyverse)
+library(MASS)
+library(ShapleyValue)
+
+```
+# Importacion de los datos y visualizacion
+
+Cargamos el Dataset de **Boston** que viene de la libreria **MASS** y observamos la tabla de valores con la funcion kable classic de la libreria **KableExtra**
+
+```{r,message = FALSE}
+
+data <- Boston
+head(data) %>%
+  kbl() %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+
+```
+# Aplicacion de SHAP para modelo Lineal
+
+Finalmente aplicamos la funcion **shapleyvalue** que calcula el valor shap de cada feature para un modelo  de regresion lineal
+```{r,message = FALSE}
+
+
+y <- data$medv
+x <- as.data.frame(data[,5:8])
+value <- shapleyvalue(y,x)
+value %>%
+  kbl() %>%
+  kable_classic(full_width = F, html_font = "Cambria") 
+```
+
